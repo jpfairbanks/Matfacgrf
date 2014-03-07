@@ -4,7 +4,7 @@ function [ W,H,errChange ] = hals( A,Winit,Hinit,k,tolerance,numIterations,beta)
 %A = mxn matrix
 %W = mxk
 %H = kxn
-%k = low rank
+%k = rank of approximation.
 %implementation of the algorithm2 from
 %http://www.bsp.brain.riken.jp/publications/2009/Cichocki-Phan-IEICE_col.pdf
 W=Winit;
