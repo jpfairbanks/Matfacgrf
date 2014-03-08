@@ -1,5 +1,6 @@
 function [ W,H,errChange ] = hals( A,Winit,Hinit,k,tolerance,numIterations,beta)
 %hals stands for Hierarchical Alternating Least Squares
+%both tolerance and beta must be very small in order to obtain good results
 %solves A=WH
 %A = mxn matrix
 %W = mxk
