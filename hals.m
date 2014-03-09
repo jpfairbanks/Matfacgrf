@@ -1,4 +1,4 @@
-function [ W,H,errChange ] = hals( A,Winit,Hinit,k,tolerance,numIterations,beta)
+function [ W,H,errChange ] = hals( A,Winit,Hinit,k,tolerance,numIterations)
 %hals stands for Hierarchical Alternating Least Squares
 %both tolerance and beta must be very small in order to obtain good results
 %solves A=WH
@@ -9,7 +9,7 @@ function [ W,H,errChange ] = hals( A,Winit,Hinit,k,tolerance,numIterations,beta)
 %implementation of the algorithm2 from
 %http://www.bsp.brain.riken.jp/publications/2009/Cichocki-Phan-IEICE_col.pdf
 W=Winit;
-H=Hinit;
+H=Hinit; %Hinit must not result in zero diagonal for HH'
 prevError=norm(A-W*H,'fro');
 currError = prevError+1;
 currentIteration=1;
@@ -19,9 +19,9 @@ while (abs(currError-prevError)>tolerance && currentIteration<numIterations)
     %temporary variable prevW to overcome parfor error.
     AHt=A*H';
     HHt=H*H';
-    %to avoid divide by zero error.
+    %assert divide by zero error.
     HHtDiag=diag(HHt);
-    HHtDiag(HHtDiag==0)=eps;
+    assert(isempty(HHtDiag==0));
     for x=1:k
         Wx = W(:,x) + (AHt(:,x)-W*HHt(:,x))/HHtDiag(x);
         Wx(Wx<eps)=eps;
@@ -32,15 +32,12 @@ while (abs(currError-prevError)>tolerance && currentIteration<numIterations)
     WtW=W'*W;
     %to avoid divide by zero error.
     WtWDiag=diag(WtW);
-    WtWDiag(WtWDiag==0)=eps;
-    %temporary variable prevH to overcome parfor error.
+    assert(isempty(WtWDiag==0));
     for x=1:k
         Hx = H(x,:)+(WtA(x,:)-WtW(x,:)*H)/WtWDiag(x);
-        Hx=Hx-beta/WtWDiag(x);
         Hx(Hx<eps)=eps;
         H(x,:)=Hx;
     end
-
     if (currentIteration>1)
         prevError=currError;
     end
