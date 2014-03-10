@@ -1,4 +1,4 @@
-function hals(A,Winit,Hinit,k,tolerance,numIterations,beta)
+function hals(A,Winit,Hinit,k,tolerance,numIterations,beta=0)
 #hals stands for Hierarchical Alternating Least Squares
 #solves A=WH
 #A = mxn matrix
