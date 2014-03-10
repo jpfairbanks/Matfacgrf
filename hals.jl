@@ -21,7 +21,7 @@ while (abs(currError-prevError)>tolerance && currentIteration<numIterations)
     HHt=H*H'
     #to avoid divide by zero error.
     HHtDiag=diag(HHt)
-    HHtDiag[HHtDiag.==0]=epsilon
+    @assert all(HHtDiag.>=0)
     for x=1:k
         Wx = W[:,x] + (AHt[:,x]-W*HHt[:,x])/HHtDiag[x]
         Wx[Wx.<epsilon]=epsilon
@@ -32,7 +32,7 @@ while (abs(currError-prevError)>tolerance && currentIteration<numIterations)
     WtW=W'*W
     #to avoid divide by zero error.
     WtWDiag=diag(WtW)
-    WtWDiag[WtWDiag.==0]=epsilon
+    @assert all(WtWDiag.>=0)
     #temporary variable prevH to overcome parfor error.
     for x=1:k
         Hx = H[x,:]+(WtA[x,:]-WtW[x,:]*H)/WtWDiag[x]
