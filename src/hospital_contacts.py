@@ -5,6 +5,21 @@ import argparse
 import sys
 
 
+def get_args():
+    """Produce the args namespace based on command line arguments"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filename')
+    parser.add_argument('--rename-vertices', action='store_true')
+    parser.add_argument('--draw-graph', action='store_true')
+    parser.add_argument('--drawfile', type=str)
+    parser.add_argument('--edgefile', type=str,
+                        help='Store the edgelist into this file in csv format')
+    parser.add_argument('--matfile', type=str,
+                        help='Store the graph matrices into this file in matlab format')
+    arg = parser.parse_args()
+    return arg
+
+
 def load_row(G, row, graphframe):
     src = row[1]
     dst = row[2]
@@ -48,18 +63,6 @@ def draw_graph(G,
     nx.draw_networkx(G, pos=layout, node_color=colors.values())
 
 
-def get_args():
-    """Produce the args namespace based on command line arguments"""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('filename')
-    parser.add_argument('--draw-graph', action='store_true')
-    parser.add_argument('--drawfile', type=str)
-    parser.add_argument('--matfile', type=str,
-                        help='Store the graph matrices into this file in matlab format')
-    arg = parser.parse_args()
-    return arg
-
-
 def write_adj_mat(G, fileobj=sys.stdout):
     """Write G to a sparse matrix format that Julia and Matlab can read."""
     lapmatrix = nx.laplacian_matrix(G)
@@ -72,9 +75,30 @@ def write_adj_mat(G, fileobj=sys.stdout):
     return mdict
 
 
+def write_edge_list(graphframe, filename):
+    """Write the edgelist in csv"""
+    edgelist = graphframe[[1, 2]]
+    edgelist.to_csv(filename)
+
+
+def rename_vertices(graphframe):
+    """Modifies the vertex numbers in graphframe"""
+    Vseries = graphframe[1].append(graphframe[2])
+    Varray = Vseries.unique()
+    i = 0
+    rename = dict()
+    for v in Varray:
+        rename[v] = i
+        i += 1
+    graphframe[1] = graphframe[1].map(rename)
+    graphframe[2] = graphframe[2].map(rename)
+    return graphframe
+
 if __name__ == '__main__':
     arg = get_args()
     graphframe = pd.read_table(arg.filename, header=None)
+    if arg.rename_vertices:
+        graphframe = rename_vertices(graphframe)
     G = nx.Graph()
     insertion_count = 0
     batchsize = 100
@@ -93,3 +117,5 @@ if __name__ == '__main__':
     if arg.matfile:
         import scipy.io as sio
         write_adj_mat(G, arg.matfile)
+    if arg.edgefile:
+        write_edge_list(graphframe, arg.edgefile)
