@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import networkx as nx
 import argparse
+import sys
 
 
 def load_row(G, row, graphframe):
@@ -53,8 +54,23 @@ def get_args():
     parser.add_argument('filename')
     parser.add_argument('--draw-graph', action='store_true')
     parser.add_argument('--drawfile', type=str)
+    parser.add_argument('--matfile', type=str,
+                        help='Store the graph matrices into this file in matlab format')
     arg = parser.parse_args()
     return arg
+
+
+def write_adj_mat(G, fileobj=sys.stdout):
+    """Write G to a sparse matrix format that Julia and Matlab can read."""
+    lapmatrix = nx.laplacian_matrix(G)
+    norm_lapl = nx.normalized_laplacian_matrix(G)
+    adjmatrix = nx.adjacency_matrix(G)
+    mdict = {'laplacian': lapmatrix,
+             'norm_lapl': norm_lapl,
+             'adjacency': adjmatrix}
+    sio.savemat(fileobj, mdict)
+    return mdict
+
 
 if __name__ == '__main__':
     arg = get_args()
@@ -74,3 +90,6 @@ if __name__ == '__main__':
             plt.savefig(arg.drawfile)
         else:
             plt.show()
+    if arg.matfile:
+        import scipy.io as sio
+        write_adj_mat(G, arg.matfile)
