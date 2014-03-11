@@ -46,11 +46,18 @@ def draw_graph(G,
     layout = layout_func(G)
     nx.draw_networkx(G, pos=layout, node_color=colors.values())
 
-if __name__ == '__main__':
+
+def get_args():
+    """Produce the args namespace based on command line arguments"""
     parser = argparse.ArgumentParser()
     parser.add_argument('filename')
     parser.add_argument('--draw-graph', action='store_true')
+    parser.add_argument('--drawfile', type=str)
     arg = parser.parse_args()
+    return arg
+
+if __name__ == '__main__':
+    arg = get_args()
     graphframe = pd.read_table(arg.filename, header=None)
     G = nx.Graph()
     insertion_count = 0
@@ -59,7 +66,11 @@ if __name__ == '__main__':
         load_row(G, row_tuple[1], graphframe)
         insertion_count += 1
         if insertion_count % batchsize == 0:
+            #do something for each batch
             pass
     if arg.draw_graph:
         draw_graph(G)
-        plt.show()
+        if arg.drawfile:
+            plt.savefig(arg.drawfile)
+        else:
+            plt.show()
