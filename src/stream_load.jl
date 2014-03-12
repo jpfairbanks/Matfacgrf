@@ -30,11 +30,3 @@ function processBatches(filename, batchsize, maxVertices, handle)
         handle(M)
     end
 end
-
-function hospital_main()
-    edgefile = "data/hospital_edges.csv"
-    batchsize = 100
-    maxV = 75
-    handler = showClosure(maxV)
-    processBatches(edgefile, batchsize,maxV, handler)
-end
