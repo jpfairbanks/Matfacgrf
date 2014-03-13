@@ -7,6 +7,9 @@ function hals(A,Winit,Hinit,k,tolerance,numIterations,beta=0)
 #k = rank of approximation.
 #implementation of the algorithm2 from
 #http://www.bsp.brain.riken.jp/publications/2009/Cichocki-Phan-IEICE_col.pdf
+#All entries of A must be nonnegative.
+#A must not contain any rows with no zero elements. We leave the user to decide how to ensure this.
+assert all(sum(A,1).>0) && all(sum(A,2).>0)
 W=Winit
 H=Hinit
 epsilon = eps(Float64)
@@ -16,7 +19,6 @@ currentIteration=1
 errChange=zeros(1,numIterations)
 while (abs(currError-prevError)>tolerance && currentIteration<numIterations)
     #update W
-    #temporary variable prevW to overcome parfor error.
     AHt=A*H'
     HHt=H*H'
     #to avoid divide by zero error.
