@@ -8,6 +8,8 @@ function [ W,H,errChange ] = hals( A,Winit,Hinit,k,tolerance,numIterations)
 %k = rank of approximation.
 %implementation of the algorithm2 from
 %http://www.bsp.brain.riken.jp/publications/2009/Cichocki-Phan-IEICE_col.pdf
+%A must not contain any rows with no zero elements. We leave the user to decide how to ensure this.
+assert(isempty(sum(A,1)<=0) && isempty(sum(A,2)<=0);
 W=Winit;
 H=Hinit; %Hinit must not result in zero diagonal for HH'
 prevError=norm(A-W*H,'fro');
