@@ -5,15 +5,27 @@
 include("../src/stream_load.jl")
 include("../src/hals.jl")
 import NMF
+import MLBase
 using Gadfly
 
 dataset = FileParams(
     "data/hospital_edges.csv",
     100,
     75)
+
+#statc matrix factorization on entire graph with rank k
+function graphNMF(k::Int)
+    AdjMat = readgraph(dataset)
+    AdjMat += eye(size(AdjMat)[1])
+    X = full(AdjMat)
+    W, H = NMF.randinit(X, k)
+    W, H = hals(AdjMat,W,H,k, 0.00001, 50,0)
+    return AdjMat, W, H
+end
+
 function NMFClosure(maxVertices::Int, rank::Int)
     # initialize
-    Adjmat = spzeros(maxVertices,maxVertices)
+    Adjmat = speye(maxVertices,maxVertices)
     X = full(Adjmat)
     #do random initialization once to improve continuity
     W, H = NMF.randinit(X, rank)
@@ -39,10 +51,11 @@ function plotverts(H)
     draw(SVG("hospital.svg", 6inch,3inch), p)
 end
 
-#dynamic version operating on each batch
-function hospital_demo_nmf()
-    k = 2
-    H = zeros(k,dataset.maxVertices)
+#dynamic factorization operating on accumulating graph.
+# Returns an H for each timestep
+function dynamic_graphNMF()
+    k = 4
+    #H = zeros(k,dataset.maxVertices)
     i = 0
     handler = NMFClosure(dataset.maxVertices, k)
     df = readtable(dataset.file)
@@ -51,18 +64,20 @@ function hospital_demo_nmf()
     for M in batches
         i += 1
         H = handler(M)
-        time[i] = copy(H)
+        time[i] = H./sum(H,1)
     end
-    plotverts(H)
     return time
 end
 
-#static version operating on the full graph.
-function plot_vertices()
-    Adjmat = readGraph(dataset)
-    X = full(AdjMat)
-    k = 2
-    W, H = NMF.randinit(X, k)
-    W, H = hals(AdjMat,W,H,k, 0.00001, 50,0)
+function hospital_classify()
+    A, W, H = graphNMF(4)
+    labels = classify(H)
+    counts = hist(labels)
+end
+
+
+#static version operating on the full graph. Makes 2D plot.
+function hospital_plot_vertices()
+    A, W, H = graphNMF(2)
     plotverts(H)
 end
