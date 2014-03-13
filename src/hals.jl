@@ -9,7 +9,7 @@ function hals(A,Winit,Hinit,k,tolerance,numIterations,beta=0)
 #http://www.bsp.brain.riken.jp/publications/2009/Cichocki-Phan-IEICE_col.pdf
 #All entries of A must be nonnegative.
 #A must not contain any rows with no zero elements. We leave the user to decide how to ensure this.
-assert all(sum(A,1).>0) && all(sum(A,2).>0)
+@assert all(sum(A,1).>0) && all(sum(A,2).>0)
 W=Winit
 H=Hinit
 epsilon = eps(Float64)
