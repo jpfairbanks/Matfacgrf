@@ -52,3 +52,14 @@ while (abs(currError-prevError)>tolerance && currentIteration<numIterations)
 end
 return  W, H, errChange
 end
+
+function randinit(m::Integer,n::Integer, k::Integer; normalize::Bool=false, zeroh::Bool=false)
+   #X is m by n and we want a rank k factorization.
+   W = rand(m, k)
+   if normalize
+       normalize1_cols!(W)
+   end
+   H = zeroh ? zeros(k, n) : rand(k, n)
+   return (W, H)::(Matrix{Float64}, Matrix{Float64})
+end
+
