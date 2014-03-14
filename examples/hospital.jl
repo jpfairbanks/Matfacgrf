@@ -21,13 +21,15 @@ function graphNMF(k::Int)
     S = symmetrize(AdjMat)
     X = normalize(S, 1)
     W, H = randinit(size(X)[1], size(X)[2], k)
-    W, H = hals(AdjMat,W,H,k, tolerance, 50,0)
-    return X, W, H
+    nmfresult = hals(AdjMat,W,H,k, tolerance, 50,0)
+    return X, nmfresult
 end
 
 #histogram the residuals from a rank k approximation.
 function histresiduals(k::Int)
-    A, W, H = graphNMF(k)
+    A, result = graphNMF(k)
+    W = result.W
+    H = result.H
     plt = plot(x=residuals(A,W,H), Geom.histogram)
     draw(SVG("hist.svg", 12cm,12cm), plt)
 end
@@ -36,13 +38,12 @@ end
 function NMFClosure(maxVertices::Int, rank::Int)
     # initialize
     Adjmat = speye(maxVertices,maxVertices)
-    X = full(Adjmat)
     #do random initialization once to improve continuity
-    W, H = NMF.randinit(maxVertices, maxVertices, rank)
+    W, H = randinit(maxVertices, maxVertices, rank)
     function batchHandle(batch)
         Adjmat += batch
-        W, H = hals(Adjmat,W,H,rank, tolerance, 50,0)
-        return H
+        result = hals(Adjmat,W,H,rank, tolerance, 50,0)
+        return result.H
     end
     return batchHandle
 end
