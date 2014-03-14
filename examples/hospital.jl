@@ -5,8 +5,7 @@
 include("../src/utils.jl")
 include("../src/stream_load.jl")
 include("../src/hals.jl")
-import NMF
-import MLBase
+using MLBase
 using Gadfly
 
 const tolerance = 0.00001
@@ -82,7 +81,7 @@ end
 
 function hospital_classify()
     A, W, H = graphNMF(4)
-    labels = classify(H)
+    labels = MLBase.classify(H)
     counts = hist(labels)
 end
 
