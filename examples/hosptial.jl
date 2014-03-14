@@ -2,12 +2,14 @@
 # Author: James Fairbanks
 # Date:   2014-03-12
 
+include("../src/utils.jl")
 include("../src/stream_load.jl")
 include("../src/hals.jl")
 import NMF
 import MLBase
 using Gadfly
 
+const tolerance = 0.00001
 dataset = FileParams(
     "data/hospital_edges.csv",
     100,
@@ -16,22 +18,31 @@ dataset = FileParams(
 #statc matrix factorization on entire graph with rank k
 function graphNMF(k::Int)
     AdjMat = readgraph(dataset)
-    AdjMat += eye(size(AdjMat)[1])
-    X = full(AdjMat)
-    W, H = NMF.randinit(X, k)
-    W, H = hals(AdjMat,W,H,k, 0.00001, 50,0)
-    return AdjMat, W, H
+    AdjMat += speye(size(AdjMat)[1])
+    S = symmetrize(AdjMat)
+    X = normalize(S, 1)
+    W, H = randinit(size(X)[1], size(X)[2], k)
+    W, H = hals(AdjMat,W,H,k, tolerance, 50,0)
+    return X, W, H
 end
+
+#histogram the residuals from a rank k approximation.
+function histresiduals(k::Int)
+    A, W, H = graphNMF(k)
+    plt = plot(x=residuals(A,W,H), Geom.histogram)
+    draw(SVG("hist.svg", 12cm,12cm), plt)
+end
+
 
 function NMFClosure(maxVertices::Int, rank::Int)
     # initialize
     Adjmat = speye(maxVertices,maxVertices)
     X = full(Adjmat)
     #do random initialization once to improve continuity
-    W, H = NMF.randinit(X, rank)
+    W, H = NMF.randinit(maxVertices, maxVertices, rank)
     function batchHandle(batch)
         Adjmat += batch
-        W, H = hals(Adjmat,W,H,rank, 0.00001, 50,0)
+        W, H = hals(Adjmat,W,H,rank, tolerance, 50,0)
         return H
     end
     return batchHandle
