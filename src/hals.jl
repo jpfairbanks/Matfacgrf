@@ -37,7 +37,34 @@ type HierarchicalALS
     end
 end
 
-function hals(A, Winit, Hinit, k, tolerance, maxiter, beta=0)
+function update_w!(W, AHt, HHt, k, epsilon)
+    #to avoid divide by zero error.
+    HHtDiag = diag(HHt)
+    if !all(HHtDiag .> 0)
+        throw(ArgumentError("HH' will prompt a division-by-zero"))
+    end
+    for x=1:k
+        Wx = W[:,x] + (AHt[:,x] - W*HHt[:,x])/HHtDiag[x]
+        Wx[Wx.<epsilon] = epsilon
+        W[:,x] = Wx
+    end
+end
+
+function update_h!(H, WtA, WtW, k, epsilon, lambda)
+    #to avoid divide by zero error.
+    WtWDiag=diag(WtW)
+    if !all(WtWDiag .> 0)
+        throw(ArgumentError("W'W will prompt a division-by-zero"))
+    end
+    for x=1:k
+        Hx = H[x,:]+((WtA[x,:] - WtW[x,:]*H) / WtWDiag[x])
+        Hx = Hx - (lambda / WtWDiag[x])
+        Hx[Hx.<epsilon] = epsilon
+        H[x,:] = Hx
+    end
+end
+
+function hals(A, Winit, Hinit, k, tolerance, maxiter, lambda)
     #hals stands for Hierarchical Alternating Least Squares
     #solves A=WH
     #A = mxn matrix
@@ -48,7 +75,9 @@ function hals(A, Winit, Hinit, k, tolerance, maxiter, beta=0)
     #http://www.bsp.brain.riken.jp/publications/2009/Cichocki-Phan-IEICE_col.pdf
     #All entries of A must be nonnegative.
     #A must not contain any rows with no zero elements. We leave the user to decide how to ensure this.
-    @assert all(sum(A,1).>0) && all(sum(A,2).>0)
+    if !(all(sum(A,1).>0) && all(sum(A,2).>0))
+        throw(ArgumentError("There is a zero row or column the algorithm will not converge."))
+    end
     W=Winit
     H=Hinit
     epsilon = eps(Float64)
@@ -58,31 +87,15 @@ function hals(A, Winit, Hinit, k, tolerance, maxiter, beta=0)
     errChange=zeros(1,maxiter)
     converged = false
     while (!converged && currentIteration<maxiter)
-
         #update W
         AHt=A*H'
         HHt=H*H'
-        #to avoid divide by zero error.
-        HHtDiag=diag(HHt)
-        @assert all(HHtDiag.>=0)
-        for x=1:k
-            Wx = W[:,x] + (AHt[:,x]-W*HHt[:,x])/HHtDiag[x]
-            Wx[Wx.<epsilon]=epsilon
-            W[:,x]=Wx
-        end
+        update_w!(W, AHt, HHt, k, epsilon)
 
         #update H
         WtA=W'*A
         WtW=W'*W
-        #to avoid divide by zero error.
-        WtWDiag=diag(WtW)
-        @assert all(WtWDiag.>=0)
-        for x=1:k
-            Hx = H[x,:]+(WtA[x,:]-WtW[x,:]*H)/WtWDiag[x]
-            Hx=Hx-beta/WtWDiag[x]
-            Hx[Hx.<epsilon]=epsilon
-            H[x,:]=Hx
-        end
+        update_h!(H, WtA, WtW, k, epsilon, lambda)
 
         #check convergence
         if (currentIteration>1)
@@ -100,7 +113,7 @@ function randinit(m::Integer,n::Integer, k::Integer; normalize::Bool=false, zero
    #X is m by n and we want a rank k factorization.
    W = rand(m, k)
    if normalize
-       normalize1_cols!(W)
+       NMF.normalize1_cols!(W)
    end
    H = zeroh ? zeros(k, n) : rand(k, n)
    return (W, H)::(Matrix{Float64}, Matrix{Float64})
