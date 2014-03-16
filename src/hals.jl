@@ -57,7 +57,7 @@ function update_h!(H, WtA, WtW, k, epsilon, lambda)
         throw(ArgumentError("W'W will prompt a division-by-zero"))
     end
     for x=1:k
-        Hx = H[x,:]+((WtA[x,:] - WtW[x,:]*H) / WtWDiag[x])
+        Hx = H[x,:] + ((WtA[x,:] - WtW[x,:]*H) / WtWDiag[x])
         Hx = Hx - (lambda / WtWDiag[x])
         Hx[Hx.<epsilon] = epsilon
         H[x,:] = Hx
@@ -65,51 +65,53 @@ function update_h!(H, WtA, WtW, k, epsilon, lambda)
 end
 
 function hals(A, Winit, Hinit, k, tolerance, maxiter, lambda)
-    #hals stands for Hierarchical Alternating Least Squares
-    #solves A=WH
-    #A = mxn matrix
-    #W = mxk
-    #H = kxn
-    #k = rank of approximation.
-    #implementation of the algorithm2 from
-    #http://www.bsp.brain.riken.jp/publications/2009/Cichocki-Phan-IEICE_col.pdf
-    #All entries of A must be nonnegative.
-    #A must not contain any rows with no zero elements. We leave the user to decide how to ensure this.
-    if !(all(sum(A,1).>0) && all(sum(A,2).>0))
+    # hals stands for Hierarchical Alternating Least Squares
+    # solves A=WH
+    # A = mxn matrix
+    # W = mxk
+    # H = kxn
+    # k = rank of approximation.
+    # implementation of algorithm2 from
+    # http://www.bsp.brain.riken.jp/publications/2009/Cichocki-Phan-IEICE_col.pdf
+    # All entries of A must be nonnegative.
+    # A must not contain any rows with no zero elements.
+    # We leave the user to decide how to ensure this.
+    if !(all(sum(A, 1) .> 0) && all(sum(A, 2) .> 0))
         throw(ArgumentError("There is a zero row or column the algorithm will not converge."))
     end
-    W=Winit
-    H=Hinit
+    W = Winit
+    H = Hinit
     epsilon = eps(Float64)
-    prevError=normfro(A-W*H)
-    currError = prevError+1
-    currentIteration=1
-    errChange=zeros(1,maxiter)
+    prevError = normfro(A - W*H)
+    currError = prevError + 1
+    currentIteration = 1
+    errChange=zeros(1, maxiter)
     converged = false
-    while (!converged && currentIteration<maxiter)
+    while (!converged && currentIteration < maxiter)
         #update W
-        AHt=A*H'
-        HHt=H*H'
+        AHt = A * H'
+        HHt = H * H'
         update_w!(W, AHt, HHt, k, epsilon)
 
         #update H
-        WtA=W'*A
-        WtW=W'*W
+        WtA = W' * A
+        WtW = W' * W
         update_h!(H, WtA, WtW, k, epsilon, lambda)
 
         #check convergence
-        if (currentIteration>1)
-            prevError=currError
+        if (currentIteration > 1)
+            prevError = currError
         end
-        errChange[currentIteration]=prevError
-        currError=normfro(A-W*H)
-        converged = abs(currError-prevError)>tolerance
-        currentIteration=currentIteration+1
+        errChange[currentIteration] = prevError
+        currError = normfro(A - W*H)
+        converged = abs(currError - prevError) > tolerance
+        currentIteration = currentIteration + 1
     end
     return NMF.Result(W, H, currentIteration, converged, currError)
 end
 
-function randinit(m::Integer,n::Integer, k::Integer; normalize::Bool=false, zeroh::Bool=false)
+function randinit(m::Integer, n::Integer, k::Integer
+                    ;normalize::Bool=false, zeroh::Bool=false)
    #X is m by n and we want a rank k factorization.
    W = rand(m, k)
    if normalize
