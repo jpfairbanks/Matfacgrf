@@ -15,5 +15,5 @@ function testHALS()
                            tol=10e-6,
                            lambda=0.0,
                            verbose=false)
-    solve!(alg, A, W, H)
+    @test isa(solve!(alg, A, W, H), NMF.Result)
 end
