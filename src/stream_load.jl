@@ -39,7 +39,7 @@ function showClosure(maxVertices)
     function batchHandle(batch)
         @show batch
         Adjmat += batch
-        @show Adjmat
+        #@show Adjmat
     end
     return batchHandle
 end

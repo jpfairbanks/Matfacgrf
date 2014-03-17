@@ -4,6 +4,7 @@
 
 include("../src/utils.jl")
 include("../src/stream_load.jl")
+include("../src/graphNMF.jl")
 include("../src/hals.jl")
 using MLBase
 using Gadfly
@@ -11,84 +12,72 @@ using Gadfly
 const tolerance = 0.00001
 dataset = FileParams(
     "data/hospital_edges.csv",
-    100,
+    300,
     75)
 
-#statc matrix factorization on entire graph with rank k
-function graphNMF(k::Int)
-    AdjMat = readgraph(dataset)
-    AdjMat += speye(size(AdjMat)[1])
-    S = symmetrize(AdjMat)
-    X = normalize(S, 1)
-    W, H = randinit(size(X)[1], size(X)[2], k)
-    nmfresult = hals(AdjMat,W,H,k, tolerance, 50,0)
-    return X, nmfresult
-end
+info("Reading graph from $dataset.")
+AdjMat = readgraph(dataset)
+alg = HierarchicalALS()
 
 #histogram the residuals from a rank k approximation.
-function histresiduals(k::Int)
-    A, result = graphNMF(k)
-    W = result.W
-    H = result.H
-    plt = plot(x=residuals(A,W,H), Geom.histogram)
-    draw(SVG("hist.svg", 12cm,12cm), plt)
+function histresiduals(filename, k::Int)
+    resids = nmfresiduals(alg, AdjMat, k)
+    plt = plot(x=resids, Geom.histogram)
+    info("Drawing distribution of residuals to file: $filename\n")
+    draw(SVG("histogram.svg", 12cm,12cm), plt)
 end
 
 
-function NMFClosure(maxVertices::Int, rank::Int)
-    # initialize
-    Adjmat = speye(maxVertices,maxVertices)
-    #do random initialization once to improve continuity
-    W, H = randinit(maxVertices, maxVertices, rank)
-    function batchHandle(batch)
-        Adjmat += batch
-        result = hals(Adjmat,W,H,rank, tolerance, 50,0)
-        return result.H
+function plotverts(filename, H,)
+    p = plot(x=H[1,:], y=H[2,:])
+    info("Drawing vertex embedding to file: $filename\n")
+    draw(SVG(filename, 6inch,3inch), p)
+end
+
+#dynamic factorization operating on accumulating graph.
+# Returns an H for each timestep
+function dynamic_graphNMF(dataset::FileParams, k::Integer)
+    #H = zeros(k,dataset.maxVertices)
+    i = 0
+    handler = NMFClosure(alg, dataset.maxVertices, k)
+    df = readtable(dataset.file)
+    time = cell(iceil(size(df)[1]/dataset.batchsize))
+    batches = @task yieldBatchMats(df, dataset.batchsize, dataset.maxVertices)
+    for M in batches
+        i += 1
+        H = handler(M).H
+        time[i] = H./sum(H,1)
     end
-    return batchHandle
+    return time
 end
 
+#static version operating on the full graph. Makes 2D plot.
+function hospital_plot_vertices(alg, AdjMat)
+    X, result = graphNMF(alg, AdjMat, 2)
+    H = result.H
+    filename = "hospital.svg"
+    plotverts(filename, H)
+end
 
-function hospital_demo()
+function hospital_classify(alg, AdjMat, k::Integer)
+    labels, counts = nmf_classify(alg, AdjMat, k)
+end
+
+function batch_cat()
     @time begin
         handler = showClosure(dataset.maxVertices)
         processBatches(dataset, handler)
     end
 end
 
-function plotverts(H)
-    p = plot(x=H[1,:], y=H[2,:])
-    print("Writing to file hospital.svg\n")
-    draw(SVG("hospital.svg", 6inch,3inch), p)
-end
-
-#dynamic factorization operating on accumulating graph.
-# Returns an H for each timestep
-function dynamic_graphNMF()
-    k = 4
-    #H = zeros(k,dataset.maxVertices)
-    i = 0
-    handler = NMFClosure(dataset.maxVertices, k)
-    df = readtable(dataset.file)
-    time = cell(iceil(size(df)[1]/dataset.batchsize))
-    batches = @task yieldBatchMats(df, dataset.batchsize, dataset.maxVertices)
-    for M in batches
-        i += 1
-        H = handler(M)
-        time[i] = H./sum(H,1)
-    end
-    return time
-end
-
-function hospital_classify()
-    A, W, H = graphNMF(4)
-    labels = MLBase.classify(H)
-    counts = hist(labels)
-end
-
-
-#static version operating on the full graph. Makes 2D plot.
-function hospital_plot_vertices()
-    A, W, H = graphNMF(2)
-    plotverts(H)
+function testHospital(k::Integer)
+    info("A static embedding of the vertices based on NMF.")
+    hospital_plot_vertices(alg, AdjMat)
+    info("You can find outliers based on the residuals")
+    histresiduals("histogram.svg", k)
+    info("We can update the embedding at each batch.")
+    locations = dynamic_graphNMF(dataset, k)
+    info("Classifying vertices into $k groups.")
+    hospital_classify(alg, AdjMat, k)
+    info("Test finished")
 end

@@ -1,4 +1,5 @@
 # Hierarchical Alternating Least Squares Algorithm for NMF.
+# this file should be pulled into package JuliaStats/NMF.jl
 #
 # Reference:
 # @article{cichocki2009fast,
