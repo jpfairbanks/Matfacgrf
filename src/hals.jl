@@ -1,4 +1,3 @@
-#
 # Hierarchical Alternating Least Squares Algorithm for NMF.
 #
 # Reference:
@@ -18,22 +17,25 @@
 # original Julia implementation by James Fairbanks at Georgia Tech.
 
 using NMF
-type HierarchicalALS
-    maxiter::Int    # maximum number of iterations
-    verbose::Bool   # whether to show procedural information
-    tol::Float64    # threshold for convergence
-    lambda::Float64 # regularization parameter default 0
+using Base.Test
+
+immutable HierarchicalALS
+    maxiter::Integer    # maximum number of iterations.
+    tol::Float64        # threshold for convergence.
+    lambda::Float64     # regularization parameter default 0.
+    verbose::Bool       # whether to show procedural information.
 
     function HierarchicalALS(;maxiter::Integer=100,
-                             verbose::Bool=false,
                              tol::Real=1.0e-6,
-                             lambda::Real=0.0)
+                             lambda::Real=0.0,
+                             verbose::Bool=false)
         
         # check some constraints on the parameters.
         maxiter >= 1 || error("maxiter must be at least 1.")
         tol > 0 || error("tolerance must be positive.")
         # TODO: are there any constraints on lambda?
         #lambda >= || error("lambda must be nonnegative.")
+        new(maxiter, float(tol), float(lambda), verbose)
     end
 end
 
@@ -64,7 +66,7 @@ function update_h!(H, WtA, WtW, k, epsilon, lambda)
     end
 end
 
-function hals(A, Winit, Hinit, k, tolerance, maxiter, lambda)
+function hals(A, W, H, k, tolerance, maxiter, lambda)
     # hals stands for Hierarchical Alternating Least Squares
     # solves A=WH
     # A = mxn matrix
@@ -79,8 +81,6 @@ function hals(A, Winit, Hinit, k, tolerance, maxiter, lambda)
     if !(all(sum(A, 1) .> 0) && all(sum(A, 2) .> 0))
         throw(ArgumentError("There is a zero row or column the algorithm will not converge."))
     end
-    W = Winit
-    H = Hinit
     epsilon = eps(Float64)
     prevError = normfro(A - W*H)
     currError = prevError + 1
@@ -108,6 +108,11 @@ function hals(A, Winit, Hinit, k, tolerance, maxiter, lambda)
         currentIteration = currentIteration + 1
     end
     return NMF.Result(W, H, currentIteration, converged, currError)
+end
+
+function solve!(alg::HierarchicalALS, A, W, H)
+    m,n,k = NMF.nmf_checksize(A,W,H)
+    result = hals(A, W, H, k, alg.tol, alg.maxiter, alg.lambda)
 end
 
 function randinit(m::Integer, n::Integer, k::Integer
