@@ -6,7 +6,8 @@ using NMF
 function graphNMF(alg::HierarchicalALS, AdjMat, k::Int)
     AdjMat += speye(size(AdjMat)[1])
     S = symmetrize(AdjMat)
-    X = normalize(S, 1)
+    X = S
+    #X = normalize(S, 1)
     W, H = randinit(size(X)[1], size(X)[2], k)
     #nmfresult = hals(AdjMat, W, H, k, tolerance, 50,0)
     nmfresult = solve!(alg, X, W, H)
@@ -46,7 +47,7 @@ function nmfresiduals(alg::HierarchicalALS, AdjMat, k::Integer)
     X, result = graphNMF(alg, AdjMat, k)
     W = result.W
     H = result.H
-    return residuals(X, W, H)
+    return residual(X, W, H, 2)
 end
 
 # TODO: Implement a function that compares the effects

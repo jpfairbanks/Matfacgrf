@@ -13,7 +13,9 @@ const tolerance = 0.00001
 dataset = FileParams(
     "data/hospital_edges.csv",
     300,
-    75)
+    75,
+    2,
+    3)
 
 info("Reading graph from $dataset.")
 AdjMat = readgraph(dataset)
@@ -24,7 +26,7 @@ function histresiduals(filename, k::Int)
     resids = nmfresiduals(alg, AdjMat, k)
     plt = plot(x=resids, Geom.histogram)
     info("Drawing distribution of residuals to file: $filename\n")
-    draw(SVG("histogram.svg", 12cm,12cm), plt)
+    draw(SVG(filename, 12cm,12cm), plt)
 end
 
 

@@ -83,7 +83,12 @@ function hals(A, W, H, k, tolerance, maxiter, lambda)
         throw(ArgumentError("There is a zero row or column the algorithm will not converge."))
     end
     epsilon = eps(Float64)
-    prevError = normfro(A - W*H)
+    info("About to compute error")
+    #prevError = normfro(A - W*H)
+    oldW = copy(W)
+    oldH = copy(H)
+    prevError = normfro(W-oldW) + normfro(H-oldH)
+    info("computed error")
     currError = prevError + 1
     currentIteration = 1
     errChange=zeros(1, maxiter)
@@ -92,11 +97,13 @@ function hals(A, W, H, k, tolerance, maxiter, lambda)
         #update W
         AHt = A * H'
         HHt = H * H'
+        oldW = copy(W)
         update_w!(W, AHt, HHt, k, epsilon)
 
         #update H
         WtA = W' * A
         WtW = W' * W
+        oldH = copy(H)
         update_h!(H, WtA, WtW, k, epsilon, lambda)
 
         #check convergence
@@ -104,8 +111,10 @@ function hals(A, W, H, k, tolerance, maxiter, lambda)
             prevError = currError
         end
         errChange[currentIteration] = prevError
-        currError = normfro(A - W*H)
-        converged = abs(currError - prevError) > tolerance
+        #currError = normfro(A - W*H)
+        currError = normfro(W-oldW) + normfro(H-oldH)
+        @printf("iter:%d\t%f\n", currentIteration, currError)
+        converged = abs(currError - prevError) < tolerance
         currentIteration = currentIteration + 1
     end
     return NMF.Result(W, H, currentIteration, converged, currError)
