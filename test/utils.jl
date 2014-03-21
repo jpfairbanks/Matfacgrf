@@ -1,3 +1,4 @@
+using Matfacgrf
 using Base.Test
 function testResidual()
     m, k, n = 10, 5, 12
@@ -12,7 +13,8 @@ function testResidual()
     @test sum(rr) == sum(cr)
 
     B = sparse(W*H)
-    @test residual(B,W,H) == 0.0
+    @test Matfacgrf.residual(B,W,H) == 0.0
     #test throws
-    @test_throws residual(A, W, [1 2])
+    @test_throws Matfacgrf.residual(A, W, [1 2])
+    info("test of residual computations passed.")
 end

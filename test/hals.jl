@@ -1,3 +1,9 @@
+using HALS
+import HALS.randinit
+import HALS.HierarchicalALS
+import HALS.solve!
+
+using Base.Test
 function testHALStype()
     @test_throws HierarchicalALS(maxiter = 0)
     @test_throws HierarchicalALS(maxiter= -1)
