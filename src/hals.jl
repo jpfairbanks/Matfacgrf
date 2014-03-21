@@ -16,10 +16,10 @@
 #
 # original MATLAB implementation by Ramakrishnan Kannan at Georgia Tech.
 # original Julia implementation by James Fairbanks at Georgia Tech.
-
+module HALS
 using NMF
 using Base.Test
-
+export HierarchicalALS, solve!
 immutable HierarchicalALS
     maxiter::Integer    # maximum number of iterations.
     tol::Float64        # threshold for convergence.
@@ -135,4 +135,4 @@ function randinit(m::Integer, n::Integer, k::Integer
    H = zeroh ? zeros(k, n) : rand(k, n)
    return (W, H)::(Matrix{Float64}, Matrix{Float64})
 end
-
+end

@@ -1,5 +1,7 @@
-include("hals.jl")
+using HALS
 using NMF
+
+import HALS.HierarchicalALS, HALS.solve!
 
 # statc matrix factorization on entire graph with rank k
 # Returns the matrix representing the graph and the NMF.Result.
