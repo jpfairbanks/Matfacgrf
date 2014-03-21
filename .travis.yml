@@ -15,3 +15,4 @@ before_install:
 script:
   - julia -e 'Pkg.init(); run(`ln -s $(pwd()) $(Pkg.dir("Matfacgrf"))`); Pkg.pin("Matfacgrf"); Pkg.resolve()'
   - julia -e 'using Matfacgrf; @assert isdefined(:Matfacgrf); @assert typeof(Matfacgrf) === Module'
+  - julia runtests.jl
