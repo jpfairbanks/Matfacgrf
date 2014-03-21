@@ -1,5 +1,4 @@
 using Matfacgrf
-using HALS
 
 tests = ["utils",
          "hals",

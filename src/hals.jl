@@ -16,7 +16,6 @@
 #
 # original MATLAB implementation by Ramakrishnan Kannan at Georgia Tech.
 # original Julia implementation by James Fairbanks at Georgia Tech.
-module HALS
 using NMF
 using Base.Test
 export HierarchicalALS, solve!
@@ -134,5 +133,4 @@ function randinit(m::Integer, n::Integer, k::Integer
    end
    H = zeroh ? zeros(k, n) : rand(k, n)
    return (W, H)::(Matrix{Float64}, Matrix{Float64})
-end
 end

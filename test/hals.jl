@@ -1,7 +1,7 @@
-using HALS
-import HALS.randinit
-import HALS.HierarchicalALS
-import HALS.solve!
+using Matfacgrf
+#import Matfacgrf.randinit
+#import Matfacgrf.HierarchicalALS
+#import Matfacgrf.solve!
 
 using Base.Test
 function testHALStype()
