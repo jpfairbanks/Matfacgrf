@@ -2,17 +2,14 @@
 # Author: James Fairbanks
 # Date:   2014-03-12
 
-include("../src/utils.jl")
-include("../src/stream_load.jl")
-include("../src/graphNMF.jl")
-include("../src/hals.jl")
+using Matfacgrf
 using MLBase
 using Gadfly
 
 const tolerance = 0.00001
 dataset = FileParams(
     "data/hospital_edges.csv",
-    300,
+    3000,
     75,
     2,
     3)
@@ -77,9 +74,9 @@ function testHospital(k::Integer)
     hospital_plot_vertices(alg, AdjMat)
     info("You can find outliers based on the residuals")
     histresiduals("histogram.svg", k)
-    info("We can update the embedding at each batch.")
-    locations = dynamic_graphNMF(dataset, k)
     info("Classifying vertices into $k groups.")
     hospital_classify(alg, AdjMat, k)
+    info("We can update the embedding at each batch.")
+    #locations = dynamic_graphNMF(dataset, k)
     info("Test finished")
 end
