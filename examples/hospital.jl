@@ -10,6 +10,8 @@ import Matfacgrf.FileParams
 import Matfacgrf.HierarchicalALS
 import Matfacgrf.readgraph
 import Matfacgrf.graphNMF
+import Matfacgrf.nmfresiduals
+import Matfacgrf.nmfclassify
 
 const tolerance = 0.00001
 dataset = FileParams(
@@ -64,7 +66,7 @@ function hospital_plot_vertices(alg, AdjMat)
 end
 
 function hospital_classify(alg, AdjMat, k::Integer)
-    labels, counts = nmf_classify(alg, AdjMat, k)
+    labels, counts = nmfclassify(alg, AdjMat, k)
 end
 
 function batch_cat()

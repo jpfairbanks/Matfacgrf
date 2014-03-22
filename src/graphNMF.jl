@@ -32,7 +32,7 @@ end
 
 # Run nmf of a graph and classify the vertices into their clusters.
 # Returns the labels and the number of vertices in each class.
-function nmf_classify(alg::HierarchicalALS, AdjMat, k)
+function nmfclassify(alg::HierarchicalALS, AdjMat, k)
     A, result = graphNMF(alg, AdjMat, k)
     H = result.H
     labels = MLBase.classify(H)
