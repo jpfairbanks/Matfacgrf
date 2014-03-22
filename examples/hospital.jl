@@ -2,17 +2,24 @@
 # Author: James Fairbanks
 # Date:   2014-03-12
 
-include("../src/utils.jl")
-include("../src/stream_load.jl")
-include("../src/graphNMF.jl")
-include("../src/hals.jl")
+using Matfacgrf
 using MLBase
 using Gadfly
+using DataFrames
+
+import Matfacgrf.FileParams
+import Matfacgrf.HierarchicalALS
+import Matfacgrf.readgraph
+import Matfacgrf.graphNMF
+import Matfacgrf.nmfresiduals
+import Matfacgrf.nmfclassify
+import Matfacgrf.NMFClosure
+import Matfacgrf.yieldBatchMats
 
 const tolerance = 0.00001
 dataset = FileParams(
     "data/hospital_edges.csv",
-    300,
+    3000,
     75,
     2,
     3)
@@ -42,7 +49,7 @@ function dynamic_graphNMF(dataset::FileParams, k::Integer)
     #H = zeros(k,dataset.maxVertices)
     i = 0
     handler = NMFClosure(alg, dataset.maxVertices, k)
-    df = readtable(dataset.file)
+    df = DataFrames.readtable(dataset.file)
     time = cell(iceil(size(df)[1]/dataset.batchsize))
     batches = @task yieldBatchMats(df, dataset.batchsize, dataset.maxVertices)
     for M in batches
@@ -62,7 +69,7 @@ function hospital_plot_vertices(alg, AdjMat)
 end
 
 function hospital_classify(alg, AdjMat, k::Integer)
-    labels, counts = nmf_classify(alg, AdjMat, k)
+    labels, counts = nmfclassify(alg, AdjMat, k)
 end
 
 function batch_cat()
@@ -77,9 +84,9 @@ function testHospital(k::Integer)
     hospital_plot_vertices(alg, AdjMat)
     info("You can find outliers based on the residuals")
     histresiduals("histogram.svg", k)
-    info("We can update the embedding at each batch.")
-    locations = dynamic_graphNMF(dataset, k)
     info("Classifying vertices into $k groups.")
     hospital_classify(alg, AdjMat, k)
+    info("We can update the embedding at each batch.")
+    locations = dynamic_graphNMF(dataset, k)
     info("Test finished")
 end
