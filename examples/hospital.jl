@@ -6,6 +6,11 @@ using Matfacgrf
 using MLBase
 using Gadfly
 
+import Matfacgrf.FileParams
+import Matfacgrf.HierarchicalALS
+import Matfacgrf.readgraph
+import Matfacgrf.graphNMF
+
 const tolerance = 0.00001
 dataset = FileParams(
     "data/hospital_edges.csv",
