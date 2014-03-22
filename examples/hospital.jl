@@ -4,7 +4,7 @@
 
 using Matfacgrf
 using MLBase
-using Gadfly
+using Winston
 using DataFrames
 
 import Matfacgrf.FileParams
@@ -31,16 +31,16 @@ alg = HierarchicalALS()
 #histogram the residuals from a rank k approximation.
 function histresiduals(filename, k::Int)
     resids = nmfresiduals(alg, AdjMat, k)
-    plt = plot(x=resids, Geom.histogram)
+    plt = plothist(resids)
     info("Drawing distribution of residuals to file: $filename\n")
-    draw(SVG(filename, 12cm,12cm), plt)
+    file(filename)
 end
 
 
 function plotverts(filename, H,)
-    p = plot(x=H[1,:], y=H[2,:])
+    p = scatter(H[1,:], H[2,:])
     info("Drawing vertex embedding to file: $filename\n")
-    draw(SVG(filename, 6inch,3inch), p)
+    file(filename)
 end
 
 #dynamic factorization operating on accumulating graph.
