@@ -12,8 +12,8 @@ function normalize(A, dim::Int)
     return A./sum(A,dim)
 end
 
-function residuals_wasteful(A,W,H)
-    sum(.^(A-W*H, 2), 1)
+function residual(A,W,H)
+    vecnorm(A - W*H)
 end
 
 # verify and return the sizes of the matrices
@@ -32,8 +32,8 @@ end
 
 function rowresiduals(A,W,H,m,k,n)
     rowresids = zeros(n)
-    for i = 1:m
-        for j = 1:n
+    for j = 1:n
+        for i = 1:m
             x = 0.0
             #compute the predicted value
             for l = 1:k

@@ -66,7 +66,7 @@ function update_h!(H, WtA, WtW, k, epsilon, lambda)
     end
 end
 
-function hals(A, W, H, k, tolerance, maxiter, lambda)
+function hals(A, W, H, k, tolerance, maxiter, lambda, verbose)
     # hals stands for Hierarchical Alternating Least Squares
     # solves A=WH
     # A = mxn matrix
@@ -82,12 +82,10 @@ function hals(A, W, H, k, tolerance, maxiter, lambda)
         throw(ArgumentError("There is a zero row or column the algorithm will not converge."))
     end
     epsilon = eps(Float64)
-    info("About to compute error")
-    #prevError = normfro(A - W*H)
+    #prevError = vecnorm(A - W*H)
     oldW = copy(W)
     oldH = copy(H)
-    prevError = normfro(W-oldW) + normfro(H-oldH)
-    info("computed error")
+    prevError = vecnorm(W-oldW) + vecnorm(H-oldH)
     currError = prevError + 1
     currentIteration = 1
     errChange=zeros(1, maxiter)
@@ -110,9 +108,15 @@ function hals(A, W, H, k, tolerance, maxiter, lambda)
             prevError = currError
         end
         errChange[currentIteration] = prevError
-        #currError = normfro(A - W*H)
-        currError = normfro(W-oldW) + normfro(H-oldH)
-        @printf("iter:%d\t%f\n", currentIteration, currError)
+        #currError = vecnorm(A - W*H)
+        currError = vecnorm(W-oldW) + vecnorm(H-oldH)
+        if verbose
+            @printf("iter:%d\t%f\t%f\n",
+                    currentIteration,
+                    currError,
+                    residual(A, W, H)
+                    )
+        end
         converged = abs(currError - prevError) < tolerance
         currentIteration = currentIteration + 1
     end
@@ -121,7 +125,7 @@ end
 
 function solve!(alg::HierarchicalALS, A, W, H)
     m,n,k = NMF.nmf_checksize(A,W,H)
-    result = hals(A, W, H, k, alg.tol, alg.maxiter, alg.lambda)
+    result = hals(A, W, H, k, alg.tol, alg.maxiter, alg.lambda, alg.verbose)
 end
 
 function randinit(m::Integer, n::Integer, k::Integer
