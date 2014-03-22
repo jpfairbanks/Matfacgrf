@@ -5,6 +5,7 @@
 using Matfacgrf
 using MLBase
 using Gadfly
+using DataFrames
 
 import Matfacgrf.FileParams
 import Matfacgrf.HierarchicalALS
@@ -12,6 +13,8 @@ import Matfacgrf.readgraph
 import Matfacgrf.graphNMF
 import Matfacgrf.nmfresiduals
 import Matfacgrf.nmfclassify
+import Matfacgrf.NMFClosure
+import Matfacgrf.yieldBatchMats
 
 const tolerance = 0.00001
 dataset = FileParams(
@@ -46,7 +49,7 @@ function dynamic_graphNMF(dataset::FileParams, k::Integer)
     #H = zeros(k,dataset.maxVertices)
     i = 0
     handler = NMFClosure(alg, dataset.maxVertices, k)
-    df = readtable(dataset.file)
+    df = DataFrames.readtable(dataset.file)
     time = cell(iceil(size(df)[1]/dataset.batchsize))
     batches = @task yieldBatchMats(df, dataset.batchsize, dataset.maxVertices)
     for M in batches
@@ -84,6 +87,6 @@ function testHospital(k::Integer)
     info("Classifying vertices into $k groups.")
     hospital_classify(alg, AdjMat, k)
     info("We can update the embedding at each batch.")
-    #locations = dynamic_graphNMF(dataset, k)
+    locations = dynamic_graphNMF(dataset, k)
     info("Test finished")
 end

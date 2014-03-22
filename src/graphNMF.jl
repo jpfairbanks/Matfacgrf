@@ -1,3 +1,4 @@
+using MLBase
 using NMF
 
 # statc matrix factorization on entire graph with rank k
