@@ -36,8 +36,7 @@ function histresiduals(filename, k::Int)
     file(filename)
 end
 
-
-function plotverts(filename, H,)
+function plotcolumns(filename, H,)
     p = scatter(H[1,:], H[2,:])
     info("Drawing vertex embedding to file: $filename\n")
     file(filename)
@@ -61,18 +60,17 @@ function dynamic_graphNMF(dataset::FileParams, k::Integer)
 end
 
 #static version operating on the full graph. Makes 2D plot.
-function hospital_plot_vertices(alg, AdjMat)
+function vertexplot(filename, alg, AdjMat)
     X, result = graphNMF(alg, AdjMat, 2)
     H = result.H
-    filename = "hospital.svg"
-    plotverts(filename, H)
+    plotcolumns(filename, H)
 end
 
-function hospital_classify(alg, AdjMat, k::Integer)
+function vertexclassify(alg, AdjMat, k::Integer)
     labels, counts = nmfclassify(alg, AdjMat, k)
 end
 
-function batch_cat()
+function batchcat()
     @time begin
         handler = showClosure(dataset.maxVertices)
         processBatches(dataset, handler)
@@ -81,12 +79,14 @@ end
 
 function testHospital(k::Integer)
     info("A static embedding of the vertices based on NMF.")
-    hospital_plot_vertices(alg, AdjMat)
+    vertexplot("hospscatter.svg", alg, AdjMat)
     info("You can find outliers based on the residuals")
     histresiduals("histogram.svg", k)
     info("Classifying vertices into $k groups.")
-    @show hospital_classify(alg, AdjMat, k)
+    @show vertexclassify(alg, AdjMat, k)
     info("We can update the embedding at each batch.")
     locations = dynamic_graphNMF(dataset, k)
     info("Test finished")
 end
+
+testHospital(6)
