@@ -24,8 +24,8 @@ end
 function yieldBatchMats(dataframe, batchsize, maxVertices)
     #since the first column is the row number
     #convert from python's 0 indexing to 1 indexing
-    src = convert(Array, dataframe[2] .+ 1)
-    dst = convert(Array, dataframe[3] .+ 1)
+    src = convert(Array, dataframe[1] .+ 1)
+    dst = convert(Array, dataframe[2] .+ 1)
     for i = 1:batchsize:size(dataframe)[1]
         starti = i
         endi   = min(i+batchsize, length(src))

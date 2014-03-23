@@ -101,8 +101,8 @@ function main(args)
         args["file"],
         args["batchsize"],
         args["max_vertices"],
-        2,
-        3)
+        1,
+        2)
     k = args["rank"]
     @show dataset
     info("Reading graph from $dataset.")
