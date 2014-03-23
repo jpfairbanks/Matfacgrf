@@ -17,16 +17,15 @@ import Matfacgrf.NMFClosure
 import Matfacgrf.yieldBatchMats
 
 const tolerance = 0.00001
-dataset = FileParams(
-    "data/hospital_edges.csv",
-    3000,
-    75,
-    2,
-    3)
 
-info("Reading graph from $dataset.")
-AdjMat = readgraph(dataset)
-alg = HierarchicalALS()
+# static function to assign a class label to each vertex
+function classifyvertices(alg, AdjMat, k::Integer)
+    labels, counts = nmfclassify(alg, AdjMat, k)
+end
+
+##############################
+# Plotting Code              #
+##############################
 
 #histogram the residuals from a rank k approximation.
 function histresiduals(filename, k::Int)
@@ -42,6 +41,23 @@ function plotcolumns(filename, H,)
     file(filename)
 end
 
+#static version operating on the full graph. Makes 2D plot.
+function plotvertices(filename, alg, AdjMat)
+    X, result = graphNMF(alg, AdjMat, 2)
+    H = result.H
+    plotcolumns(filename, H)
+end
+
+
+################################
+#    Streaming Code            #
+################################
+function batchcat()
+    @time begin
+        handler = showClosure(dataset.maxVertices)
+        processBatches(dataset, handler)
+    end
+end
 #dynamic factorization operating on accumulating graph.
 # Returns an H for each timestep
 function dynamic_graphNMF(dataset::FileParams, k::Integer)
@@ -59,23 +75,18 @@ function dynamic_graphNMF(dataset::FileParams, k::Integer)
     return time
 end
 
-#static version operating on the full graph. Makes 2D plot.
-function vertexplot(filename, alg, AdjMat)
-    X, result = graphNMF(alg, AdjMat, 2)
-    H = result.H
-    plotcolumns(filename, H)
-end
 
-function vertexclassify(alg, AdjMat, k::Integer)
-    labels, counts = nmfclassify(alg, AdjMat, k)
-end
 
-function batchcat()
-    @time begin
-        handler = showClosure(dataset.maxVertices)
-        processBatches(dataset, handler)
-    end
-end
+dataset = FileParams(
+    "data/hospital_edges.csv",
+    3000,
+    75,
+    2,
+    3)
+
+info("Reading graph from $dataset.")
+AdjMat = readgraph(dataset)
+alg = HierarchicalALS()
 
 function testHospital(k::Integer)
     info("A static embedding of the vertices based on NMF.")
