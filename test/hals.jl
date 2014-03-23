@@ -17,7 +17,7 @@ function testHALS()
     m, n, k = 10, 15, 5
     W, H = Matfacgrf.randinit(m, n, k)
     A = W * H + rand(m,n)/5
-    alg = HierarchicalALS(maxiter=5,
+    alg = HierarchicalALS(maxiter=10,
                            tol=10e-6,
                            lambda=0.0,
                            verbose=true)
@@ -28,7 +28,7 @@ function testHALS()
                            verbose=false)
     res = solve!(alg, A, W, H)
     @test isa(res, NMF.Result)
-    @show res.niters, res.converged, res.objvalue
+    #@show res.niters, res.converged, res.objvalue
 end
 
 testHALStype()

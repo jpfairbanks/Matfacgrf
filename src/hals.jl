@@ -88,7 +88,8 @@ function hals(A, W, H, k, tolerance, maxiter, lambda, verbose)
     prevError = vecnorm(W-oldW) + vecnorm(H-oldH)
     currError = prevError + 1
     currentIteration = 1
-    errChange=zeros(1, maxiter)
+    errChange = zeros(1, maxiter)
+    resids    = zeros(1, maxiter)
     converged = false
     while (!converged && currentIteration < maxiter)
         #update W
@@ -111,10 +112,19 @@ function hals(A, W, H, k, tolerance, maxiter, lambda, verbose)
         #currError = vecnorm(A - W*H)
         currError = vecnorm(W-oldW) + vecnorm(H-oldH)
         if verbose
-            @printf("iter:%d\t%f\t%f\n",
+            resid = residual(A, W, H)
+            resids[currentIteration] = resid
+            if currentIteration > 1
+                errChange[currentIteration] = resid - resids[currentIteration-1]
+            else
+                errChange[currentIteration] = resid
+                @printf "iter\tchg W + H\tresid\tchgresid\n"
+            end
+            @printf("%d\t%f\t%f\t%f\n",
                     currentIteration,
                     currError,
-                    residual(A, W, H)
+                    resid,
+                    errChange[currentIteration]
                     )
         end
         converged = abs(currError - prevError) < tolerance
