@@ -1,4 +1,4 @@
-# hospital.jl : Loads the hospital contact graph and prints the adjacency matrix
+# visualize.jl : Loads the graph and make plots.
 # Author: James Fairbanks
 # Date:   2014-03-12
 
@@ -6,6 +6,7 @@ using Matfacgrf
 using MLBase
 using Winston
 using DataFrames
+using ArgParse
 
 import Matfacgrf.FileParams
 import Matfacgrf.HierarchicalALS
@@ -28,7 +29,7 @@ end
 ##############################
 
 #histogram the residuals from a rank k approximation.
-function histresiduals(filename, k::Int)
+function histresiduals(filename, alg, AdjMat, k::Int)
     resids = nmfresiduals(alg, AdjMat, k)
     plt = plothist(resids)
     info("Drawing distribution of residuals to file: $filename\n")
@@ -60,7 +61,7 @@ function batchcat()
 end
 #dynamic factorization operating on accumulating graph.
 # Returns an H for each timestep
-function dynamic_graphNMF(dataset::FileParams, k::Integer)
+function dynamic_graphNMF(dataset::FileParams, alg, k::Integer)
     #H = zeros(k,dataset.maxVertices)
     i = 0
     handler = NMFClosure(alg, dataset.maxVertices, k)
@@ -75,29 +76,47 @@ function dynamic_graphNMF(dataset::FileParams, k::Integer)
     return time
 end
 
-
-
-dataset = FileParams(
-    "data/hospital_edges.csv",
-    3000,
-    75,
-    2,
-    3)
-
-info("Reading graph from $dataset.")
-AdjMat = readgraph(dataset)
-alg = HierarchicalALS()
-
-function testHospital(k::Integer)
-    info("A static embedding of the vertices based on NMF.")
-    vertexplot("hospscatter.svg", alg, AdjMat)
-    info("You can find outliers based on the residuals")
-    histresiduals("histogram.svg", k)
-    info("Classifying vertices into $k groups.")
-    @show vertexclassify(alg, AdjMat, k)
-    info("We can update the embedding at each batch.")
-    locations = dynamic_graphNMF(dataset, k)
-    info("Test finished")
+function getsettings()
+    args = ArgParseSettings()
+    @add_arg_table args begin
+        "--file", "-f"
+            help = "file containing edges"
+            arg_type = String
+        "--batchsize"
+            help = "number of edges per batch"
+            arg_type = Int
+        "--max_vertices"
+            help = "largest vertex ID that will be encountered"
+            arg_type = Int
+        "--rank", "-k"
+            help = "rank of the factorization"
+            arg_type = Int
+    end
+    settings = parse_args(args)
+    return settings
 end
 
-testHospital(6)
+function main(args)
+    dataset = FileParams(
+        args["file"],
+        args["batchsize"],
+        args["max_vertices"],
+        2,
+        3)
+    k = args["rank"]
+    @show dataset
+    info("Reading graph from $dataset.")
+    AdjMat = readgraph(dataset)
+    alg = HierarchicalALS()
+    info("A static embedding of the vertices based on NMF.")
+    plotvertices("vertexscatter.svg", alg, AdjMat)
+    info("You can find outliers based on the residuals")
+    histresiduals("residualhistogram.svg", alg, AdjMat, k)
+    info("Classifying vertices into $k groups.")
+    @show classifyvertices(alg, AdjMat, k)
+    info("We can update the embedding at each batch.")
+    locations = dynamic_graphNMF(dataset, alg, k)
+end
+
+settings = getsettings()
+main(settings)
