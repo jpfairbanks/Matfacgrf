@@ -43,7 +43,9 @@ function testInitialization()
     @test typeof(Matfacgrf.solve!(alg, rand(m,n), W, H)) <: NMF.Result
     W = zeros(m,k)
     info("test sparse call")
-    @test Matfacgrf.solve!(alg, sprand(m, n, 0.3), W, H) <: NMF.Result
+    C = sprand(m, n, 0.5)
+    C += speye(m, n)/2
+    @test isa(Matfacgrf.solve!(alg, C, W, H), NMF.Result)
 end
 
 function finderrors(W,H,k)

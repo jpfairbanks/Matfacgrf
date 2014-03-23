@@ -60,8 +60,8 @@ function update_h!(H, WtA, WtW, k, epsilon, lambda)
     end
     for x=1:k
         Hx = H[x,:] + ((WtA[x,:] - WtW[x,:]*H) / WtWDiag[x])
-        Hx = Hx - (lambda / WtWDiag[x])
-        Hx[Hx.<epsilon] = epsilon
+        Hx = Hx .- (lambda / WtWDiag[x])
+        Hx[Hx .< epsilon] = epsilon
         H[x,:] = Hx
     end
 end
