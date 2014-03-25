@@ -1,7 +1,7 @@
 # Matfacgrf
 Matrix Factorization for Graph Analysis
 
-[![Build Status](https://travis-ci.org/jpfairbanks/Matfacgrf.jl.png)](https://travis-ci.org/jpfairbanks/Matfacgrf.jl)
+[![Build Status](https://travis-ci.org/jpfairbanks/Matfacgrf.png)](https://travis-ci.org/jpfairbanks/Matfacgrf)
 
 The directory src contains some Matlab and Julia code to perform the factorization and
 any experiments that needs to be done for the paper.
