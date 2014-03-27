@@ -130,12 +130,14 @@ function hals(A, W, H, k, tolerance, maxiter, lambda, verbose)
         converged = abs(currError - prevError) < tolerance
         currentIteration = currentIteration + 1
     end
-    return NMF.Result(W, H, currentIteration, converged, currError)
+    result = NMF.Result(W, H, currentIteration, converged, currError)
+    return result, resids, errChange
 end
 
 function solve!(alg::HierarchicalALS, A, W, H)
     m,n,k = NMF.nmf_checksize(A,W,H)
     result = hals(A, W, H, k, alg.tol, alg.maxiter, alg.lambda, alg.verbose)
+    return result[1]
 end
 
 function randinit(m::Integer, n::Integer, k::Integer
