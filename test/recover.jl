@@ -48,20 +48,22 @@ function testInitialization()
     @test isa(Matfacgrf.solve!(alg, C, W, H), NMF.Result)
 end
 
-function finderrors(W,H,k)
+function finderrors(W,H,k;verbose=false)
     A = W*H
     tol = 10e-14
     numIter = 1000
     beta = 0.0
-    factors = Matfacgrf.hals(A,W,H,k,tol,numIter,beta, false)
+    factors, resids, errchanges = Matfacgrf.hals(A,W,H,k,tol,numIter,beta, verbose)
     newW = factors.W
     newH = factors.H
     werr = vecnorm(W - newW)/vecnorm(W)
     herr = vecnorm(H - newH)/vecnorm(H)
     residual = A - (newW * newH)
     residualerr = vecnorm(residual)/vecnorm(A)
+    @test all(diff(resids) .>= 0) #residuals should be nonincreasing 
     return werr, herr, residualerr
 end
+
 function testRecover()
     info("testRecover: tests that we can recover the factors for simple cases.")
     #the goal is to draw two random matrices H and W and make sure that
@@ -71,7 +73,7 @@ function testRecover()
     k = 50
     info("dense test")
     W, H = denseWH(m,k,n)
-    @test_approx_eq_eps finderrors(W,H,k)[3] 0.0 test_tolerance
+    @test_approx_eq_eps finderrors(W,H,k,verbose=true)[3] 0.0 test_tolerance
     info("sparse test")
     W, H = sparseWH(m,k,n,.3,.4)
     @test_approx_eq_eps finderrors(W,H,k)[3] 0.0 test_tolerance

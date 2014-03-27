@@ -2,7 +2,7 @@ using Matfacgrf
 using Base.Test
 
 import Matfacgrf.residual
-
+tolerance = 10e-10
 function testResidual()
     m, k, n = 10, 5, 12
     A = sprand(m, n, .3)
@@ -11,17 +11,17 @@ function testResidual()
     cr = residual(A, W, H, 2)
     rr = residual(A, W, H, 1)
     tr = residual(A, W, H)
-    @test_approx_eq sum(cr) tr# 10e-10
-    @test_approx_eq sum(rr) tr# 10e-10
-    @test_approx_eq sum(rr) sum(cr)
+    @test_approx_eq_eps sum(cr) tr tolerance
+    @test_approx_eq_eps sum(rr) tr tolerance
+    @test_approx_eq_eps sum(rr) sum(cr) tolerance
     @show cr, rr, tr
     info("summing both dimensions gives same answer")
 
     B = sparse(W * H)
     @show Matfacgrf.residual(B,W,H)
-    @test_approx_eq sum(Matfacgrf.residual(B, W, H)) 0.0    #10e-10
-    @test_approx_eq sum(Matfacgrf.residual(B, W, H, 2)) 0.0 #10e-10
-    @test_approx_eq sum(Matfacgrf.residual(B, W, H, 1)) 0.0 #10e-10
+    @test_approx_eq_eps sum(Matfacgrf.residual(B, W, H)) 0.0    tolerance
+    @test_approx_eq_eps sum(Matfacgrf.residual(B, W, H, 2)) 0.0 tolerance
+    @test_approx_eq_eps sum(Matfacgrf.residual(B, W, H, 1)) 0.0 tolerance
     #test throws
     @test_throws Matfacgrf.residual(A, W, [1 2])
     info("test of residual computations passed.")
