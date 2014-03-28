@@ -36,6 +36,12 @@ function yieldBatchMats(dataframe, batchsize, maxVertices)
     end
 end
 
+function yieldBatchMats(fp::FileParams)
+    df = readtable(fp.file)
+    stream = @task yieldBatchMats(df, fp.batchsize, fp.maxVertices)
+    return stream
+end
+
 function showClosure(maxVertices)
     Adjmat = spzeros(maxVertices,maxVertices)
     function batchHandle(batch)
