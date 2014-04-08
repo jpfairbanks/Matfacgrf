@@ -17,7 +17,6 @@
 # original MATLAB implementation by Ramakrishnan Kannan at Georgia Tech.
 # original Julia implementation by James Fairbanks at Georgia Tech.
 using NMF
-using Base.Test
 export HierarchicalALS, solve!
 immutable HierarchicalALS
     maxiter::Integer    # maximum number of iterations.
