@@ -2,7 +2,8 @@ using Matfacgrf
 
 tests = ["utils",
          "hals",
-         "recover"]
+         "recover",
+         "nnls"]
 
 println("Running tests:")
 
