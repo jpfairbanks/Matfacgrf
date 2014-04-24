@@ -1,9 +1,9 @@
-#caida.py: this program converts pcap data from CAIDA into a sparse matrisrc COO format
+#caida.py: this program converts pcap data from CAIDA into a sparse matrix COO format
 # it can also write the transformed_pcap data to stdout
 #Author: James Fairbanks
 #Date: 2014-04-04 16:54
 
-import scipy as sp 
+import scipy as sp
 import scipy.io as spio
 import pandas as pd
 import numpy as np
