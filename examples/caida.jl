@@ -43,11 +43,12 @@ function loaddata(args)
         args["max_vertices"],
         2,
         3)
-    AdjMat = readgraph(dataset)
+    AdjMat = readgraph(dataset, dataset.batchsize)
     k = args["rank"]
     println("loaded graph")
     return dataset, AdjMat, k
 end
+
 function main(args)
     # input time
     dataset, AdjMat, k = @time loaddata(args)
@@ -70,6 +71,7 @@ function main(args)
 
     #output
     writedlm("W.mat", W, " ")
+    writedlm("A.mat", readgraph(dataset), " ")
 end
 
 
