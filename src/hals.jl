@@ -58,11 +58,14 @@ function update_h!(H, WtA, WtW, k, epsilon, lambda)
         throw(ArgumentError("W'W will prompt a division-by-zero"))
     end
     for x=1:k
+        #H[x,:] = H[x,:] + ((WtA[x,:] - WtW[x,:]*H) / WtWDiag[x])
+        #H[x,:] = H[x,:] .- (lambda / WtWDiag[x])
         Hx = H[x,:] + ((WtA[x,:] - WtW[x,:]*H) / WtWDiag[x])
         Hx = Hx .- (lambda / WtWDiag[x])
         Hx[Hx .< epsilon] = epsilon
         H[x,:] = Hx
     end
+    #H[H.<epsilon] = epsilon
 end
 
 function hals(A, W, H, k, tolerance, maxiter, lambda, verbose)
@@ -94,13 +97,13 @@ function hals(A, W, H, k, tolerance, maxiter, lambda, verbose)
         #update W
         AHt = A * H'
         HHt = H * H'
-        oldW = copy(W)
+        copy!(oldW, W)
         update_w!(W, AHt, HHt, k, epsilon)
 
         #update H
         WtA = W' * A
         WtW = W' * W
-        oldH = copy(H)
+        copy!(oldH, H)
         update_h!(H, WtA, WtW, k, epsilon, lambda)
 
         #check convergence
