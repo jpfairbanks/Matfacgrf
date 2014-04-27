@@ -71,7 +71,6 @@ function main(args)
 
     #output
     writedlm("W.mat", W, " ")
-    writedlm("A.mat", readgraph(dataset), " ")
 end
 
 
