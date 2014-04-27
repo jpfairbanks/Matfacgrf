@@ -15,9 +15,10 @@ function readgraph(fp::FileParams)
     df = readtable(fp.file)
     #since the first column is the row number
     #convert from python's 0 indexing to 1 indexing
-    src = convert(Array, df[fp.srccol] .+ 1)
-    dest = convert(Array, df[fp.dstcol] .+ 1)
-    AdjMat = sparse(src, dest, 1.0, fp.maxVertices, fp.maxVertices)
+    src  = df.columns[fp.srccol] .+ 1
+    dest = df.columns[fp.dstcol] .+ 1
+    m = maximum([maximum(src), maximum(dest)])
+    AdjMat = sparse(src, dest, [1.0 for i in src], m,m)
     return AdjMat
 end
 
