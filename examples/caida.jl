@@ -52,6 +52,9 @@ function main(args)
     # input time
     dataset, AdjMat, k = @time loaddata(args)
     alg = HierarchicalALS()
+    
+    #compile
+    graphNMF(alg, speye(5,5), k)
 
     # do the work
     X, result = @time graphNMF(alg, AdjMat, k)
