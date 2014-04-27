@@ -12,7 +12,11 @@ immutable FileParams
 end
 
 function readgraph(fp::FileParams)
-    df = readtable(fp.file)
+    readgraph(fp, -1)
+end
+
+function readgraph(fp::FileParams, lines::Int64)
+    df = readtable(fp.file, nrows=lines)
     #since the first column is the row number
     #convert from python's 0 indexing to 1 indexing
     src  = df.columns[fp.srccol] .+ 1
