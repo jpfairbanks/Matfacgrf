@@ -3,3 +3,6 @@ MLBase
 NMF
 Winston
 DataFrames
+ArgParse
+MAT
+Gadfly
